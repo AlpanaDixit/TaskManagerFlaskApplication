@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
-from flask_jwt_extended import create_access_token, JWTManager
+from flask_jwt_extended import create_access_token, jwt_required,JWTManager, get_jwt_identity
 
 app = Flask(__name__, template_folder="templates")
 
@@ -45,13 +45,21 @@ class UserLogin(Resource):
         user = User.query.filter_by(username=username).first()
 
         if user and user.password == password:
-            access_token = create_access_token(identity=user.id)
+            access_token = create_access_token(identity=str(user.id))
             return {'access_token': access_token}
         
         return {'message': 'Invalid credentials'}, 401
     
+class ProtectedResource(Resource):
+    @jwt_required()
+    def get(self):
+        current_user_id = get_jwt_identity()
+        return {'message': 'hello user, you accessed the protected resource'}
+        # return {'message': f'hello user {current_user_id}, you accessed the protected resource'}
+    
 api.add_resource(UserRegistration, '/register')
 api.add_resource(UserLogin, '/login')
+api.add_resource(ProtectedResource, '/secure')
 
 tasks = []
 
