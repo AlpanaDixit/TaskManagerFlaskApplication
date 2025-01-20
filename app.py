@@ -59,7 +59,6 @@ class ProtectedResource(Resource):
     def get(self):
         current_user_id = get_jwt_identity()
         return {'message': 'hello user, you accessed the protected resource'}
-        # return {'message': f'hello user {current_user_id}, you accessed the protected resource'}
     
 api.add_resource(UserRegistration, '/register')
 api.add_resource(UserLogin, '/login')
@@ -70,6 +69,10 @@ tasks = []
 @app.route("/")
 def login():
     return render_template("login.html")
+
+@app.route("/register_page", methods=["GET"])
+def register_page():
+    return render_template("register.html")
 
 @app.route("/index")
 def index():
