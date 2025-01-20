@@ -1,13 +1,15 @@
 FROM python:3.9-slim
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY . .
+COPY requirements.txt .
+
+RUN pip install --upgrade pip
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY . .
+
 EXPOSE 8005
 
-ENV FLASK_APP=app.py
-
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8005", "run:app"]
