@@ -14,9 +14,16 @@
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required><br>
         <button type="submit">Login</button>
+        <button type="button" id="register-btn">Register</button>
     </form>
 
     <script>
+
+        // Register button behavior (if you want to redirect to registration page)
+        $('#register-btn').on('click', function() {
+            window.location.href = '/register_page';  // Redirect to your registration page
+        });
+
         $('#login-form').on('submit', function (e) {
             e.preventDefault(); // Prevent the form from submitting traditionally
 
