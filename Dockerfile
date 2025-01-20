@@ -12,4 +12,4 @@ COPY . .
 
 EXPOSE 8005
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8005", "run:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8005", "app:app"]
