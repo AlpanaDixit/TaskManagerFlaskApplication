@@ -22,5 +22,9 @@
         <input type="text" name="task">
         <button type="submit">Add Task</button>
     </form>
+    <br>
+    <form action="{{ url_for('logout') }}" method="post">
+        <button type="submit">Logout</button>
+    </form>
 </body>
 </html>
