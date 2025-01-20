@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 from flask_jwt_extended import create_access_token, jwt_required,JWTManager, get_jwt_identity
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__, template_folder="templates")
 
@@ -22,42 +23,65 @@ with app.app_context():
 
 class UserRegistration(Resource):
     def post(self):
+        # Retrieve JSON data from the request body
         data = request.get_json()
         username = data['username']
         password = data['password']
 
+        # Check if username or password is missing
         if not username or not password:
             return {'message': 'Missing username or password'}, 400
+        
+        # Check if the username is already taken
         if User.query.filter_by(username=username).first():
             return {'message': 'Username already taken'}, 400
         
-        new_user = User(username=username, password=password)
+        # Hash the password before saving it in the database for security
+        hashed_password = generate_password_hash(password)
+        
+        # Create a new user object with the hashed password
+        new_user = User(username=username, password=hashed_password)
+
+        # Add the new user to the session and commit the transaction to save in the database
         db.session.add(new_user)
         db.session.commit()
+
+        # Return a success message if the user is created successfully
         return {'message':'User created successfully'}, 200
     
 class UserLogin(Resource):
     def post(self):
+
+        # Retrieve JSON data from the request body
         data = request.get_json()
         username = data['username']
         password = data['password']
 
+        # Fetch the user from the database by username
         user = User.query.filter_by(username=username).first()
 
-        if user and user.password == password:
+        # Check if the user exists and if the provided password matches the stored hash
+        if user and check_password_hash(user.password, password):
+            # Generate JWT token upon successful login
             access_token = create_access_token(identity=str(user.id))
 
+            # Return the access token and the URL to redirect after login
             return {
                 'access_token': access_token,
                 'redirect_url': url_for('index', _external=True)
             }
         
+        # Return an error message if the credentials are invalid
         return {'message': 'Invalid credentials'}, 401
     
 class ProtectedResource(Resource):
     @jwt_required()
     def get(self):
+
+        # Fetch the current user ID from the JWT token
         current_user_id = get_jwt_identity()
+
+        # Return a message indicating the user accessed a protected resource
         return {'message': 'hello user, you accessed the protected resource'}
     
 api.add_resource(UserRegistration, '/register')
@@ -108,6 +132,11 @@ def delete(index):
     # Deletes a task from the tasks list
     del tasks[index]
     return redirect(url_for("index"))
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    # Logout
+    return redirect(url_for("login"))
 
 if __name__ == '__main__':
     app.run(debug=True)
