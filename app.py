@@ -46,7 +46,11 @@ class UserLogin(Resource):
 
         if user and user.password == password:
             access_token = create_access_token(identity=str(user.id))
-            return {'access_token': access_token}
+
+            return {
+                'access_token': access_token,
+                'redirect_url': url_for('index', _external=True)
+            }
         
         return {'message': 'Invalid credentials'}, 401
     
@@ -64,6 +68,10 @@ api.add_resource(ProtectedResource, '/secure')
 tasks = []
 
 @app.route("/")
+def login():
+    return render_template("login.html")
+
+@app.route("/index")
 def index():
     return render_template("index.html", tasks=tasks)
 
